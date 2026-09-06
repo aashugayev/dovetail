@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://dovetail.dev/examples/product-catalog"
+           xmlns:pc="https://dovetail.dev/examples/product-catalog"
+           elementFormDefault="qualified">
+
+  <xs:element name="catalogSubmissionRequest" type="pc:CatalogSubmissionRequest"/>
+  <xs:element name="catalogSubmissionResponse" type="pc:CatalogSubmissionResponse"/>
+
+  <xs:complexType name="CatalogSubmissionRequest">
+    <xs:sequence>
+      <xs:element name="catalog" type="pc:Catalog"/>
+      <xs:element name="products" type="pc:Products"/>
+      <xs:element name="submissionOptions" type="pc:SubmissionOptions" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CatalogSubmissionResponse">
+    <xs:sequence>
+      <xs:element name="submissionId" type="xs:string"/>
+      <xs:element name="status" type="pc:SubmissionStatus"/>
+      <xs:element name="acceptedProducts" type="xs:nonNegativeInteger"/>
+      <xs:element name="rejectedProducts" type="xs:nonNegativeInteger"/>
+      <xs:element name="message" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Catalog">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="locale" type="pc:Locale"/>
+      <xs:element name="currency" type="pc:Currency"/>
+      <xs:element name="categories" type="pc:Categories" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Categories">
+    <xs:sequence>
+      <xs:element name="category" type="pc:Category" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Category">
+    <xs:sequence>
+      <xs:element name="id" type="pc:Identifier"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="parentId" type="pc:Identifier" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Products">
+    <xs:sequence>
+      <xs:element name="product" type="pc:Product" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Product">
+    <xs:sequence>
+      <xs:element name="identity" type="pc:ProductIdentity"/>
+      <xs:element name="categoryRefs" type="pc:CategoryRefs" minOccurs="0"/>
+      <xs:element name="variants" type="pc:Variants"/>
+      <xs:element name="media" type="pc:MediaItems" minOccurs="0"/>
+      <xs:element name="attributes" type="pc:Attributes" minOccurs="0"/>
+      <xs:element name="fulfillment" type="pc:Fulfillment" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProductIdentity">
+    <xs:sequence>
+      <xs:element name="sku" type="pc:Sku"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+      <xs:element name="brand" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Variants">
+    <xs:sequence>
+      <xs:element name="variant" type="pc:Variant" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Variant">
+    <xs:sequence>
+      <xs:element name="sku" type="pc:Sku"/>
+      <xs:element name="attributes" type="pc:Attributes" minOccurs="0"/>
+      <xs:element name="price" type="pc:Price"/>
+      <xs:element name="inventory" type="pc:Inventory" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Attributes">
+    <xs:sequence>
+      <xs:element name="attribute" type="pc:Attribute" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Attribute">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="value" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Price">
+    <xs:sequence>
+      <xs:element name="amount" type="xs:decimal"/>
+      <xs:element name="currency" type="pc:Currency"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Inventory">
+    <xs:sequence>
+      <xs:element name="quantity" type="xs:nonNegativeInteger"/>
+      <xs:element name="availability" type="pc:Availability"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MediaItems">
+    <xs:sequence>
+      <xs:element name="media" type="pc:Media" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Media">
+    <xs:sequence>
+      <xs:element name="url" type="xs:anyURI"/>
+      <xs:element name="kind" type="pc:MediaKind"/>
+      <xs:element name="altText" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CategoryRefs">
+    <xs:sequence>
+      <xs:element name="categoryRef" type="pc:Identifier" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Fulfillment">
+    <xs:sequence>
+      <xs:element name="weightGrams" type="xs:positiveInteger" minOccurs="0"/>
+      <xs:element name="requiresShipping" type="xs:boolean"/>
+      <xs:element name="returnable" type="xs:boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SubmissionOptions">
+    <xs:sequence>
+      <xs:element name="mode" type="pc:SubmissionMode"/>
+      <xs:element name="dryRun" type="xs:boolean" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="Identifier"><xs:restriction base="xs:string"><xs:minLength value="1"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="Sku"><xs:restriction base="xs:string"><xs:pattern value="[A-Za-z0-9][A-Za-z0-9_-]{1,63}"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="Locale"><xs:restriction base="xs:string"><xs:pattern value="[a-z]{2}(-[A-Z]{2})?"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="Currency"><xs:restriction base="xs:string"><xs:pattern value="[A-Z]{3}"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="Availability"><xs:restriction base="xs:string"><xs:enumeration value="in_stock"/><xs:enumeration value="backorder"/><xs:enumeration value="out_of_stock"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="MediaKind"><xs:restriction base="xs:string"><xs:enumeration value="image"/><xs:enumeration value="video"/><xs:enumeration value="document"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="SubmissionMode"><xs:restriction base="xs:string"><xs:enumeration value="upsert"/><xs:enumeration value="replace"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="SubmissionStatus"><xs:restriction base="xs:string"><xs:enumeration value="accepted"/><xs:enumeration value="completed"/><xs:enumeration value="rejected"/></xs:restriction></xs:simpleType>
+</xs:schema>

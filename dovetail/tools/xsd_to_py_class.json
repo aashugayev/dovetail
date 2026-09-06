@@ -1,0 +1,21 @@
+{
+    "is_camel_to_snake": false,
+    "type_xml_to_py": {
+        "string": "str",
+        "int": "int",
+        "double": "float",
+        "boolean": "bool",
+        "date": "date",
+        "decimal": "float",
+        "nonNegativeInteger": "int",
+        "anyURI": "str",
+        "positiveInteger": "int"
+    },
+    "xsd_namespaces": [
+        "xs",
+        "xsd"
+    ],
+    "complex_type_namespaces": [
+        "pc"
+    ]
+}
