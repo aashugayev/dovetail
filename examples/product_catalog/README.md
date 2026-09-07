@@ -72,7 +72,7 @@ The typed-list `remove()` operation returns all elements associated with the req
 4. Accessing a complex property lazily creates its component wrapper. Calling it assigns primitive values to that component.
 5. Typed list properties enforce their element type and support normal list access together with named aliases.
 6. Generated components import root-specific callback modules. Those modules are developer-owned and are created once, never overwritten by regeneration.
-7. Each component can return an evaluation result, which is retained on the instance as `evaluation_result`.
+7. Each component can return any operation result, which is retained on the instance as `operation_result`.
 
 The generated callback contracts are written to `_generated_callbacks.py`. Custom behavior belongs in `catalog_submission_request_callbacks.py` or `catalog_submission_response_callbacks.py`.
 
@@ -154,5 +154,5 @@ status=accepted
 accepted_products=1
 rejected_products=0
 message=Accepted by fake loopback service
-evaluation_result=None
+operation_result=None
 ```

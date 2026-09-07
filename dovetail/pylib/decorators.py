@@ -118,7 +118,7 @@ class Component:
     A generated component instance can be used as a factory first and as a
     populated model afterward. Calling it assigns submitted primitive values,
     invokes the generated behavior hook, stores its result as
-    ``evaluation_result``, and returns the populated instance.
+    ``operation_result``, and returns the populated instance.
     """
     is_to_dict = False
 
@@ -141,7 +141,7 @@ class Component:
                 instance.__setattr__(field, value)
             else:
                 super().__setattr__(field, value)
-        instance.evaluation_result = instance.api_function(instance, **kwargs)
+        instance.operation_result = instance.api_function(instance, **kwargs)
         return instance
 
     def __getattribute__(self, name:str)->Any:

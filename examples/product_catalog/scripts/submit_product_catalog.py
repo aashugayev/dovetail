@@ -84,13 +84,29 @@ def build_catalog_submission():
     # separate steps. Each chained property creates only the complex element
     # needed at that point in the schema tree.
     blue_tshirt = product_component()
-    blue_tshirt.identity(
+    identity_result = blue_tshirt.identity(
         sku="TSHIRT-BLUE",
         name="Blue T-Shirt",
         description="Classic cotton t-shirt.",
         brand="Dovetail",
     )
-    blue_tshirt.fulfillment(requires_shipping=True, returnable=True, weight_grams=180)
+    # Component.__call__ returns the populated component instance. The custom
+    # identity hook returns a dictionary, which is available on that instance
+    # through operation_result without changing the normal component chain.
+    assert identity_result.operation_result == {
+        "normalized_name": "Blue T-Shirt",
+        "sku": "TSHIRT-BLUE",
+    }
+    print(f"identity operation result={identity_result.operation_result}")
+
+    # Components without a developer implementation still return their
+    # populated instance; their operation result is simply None.
+    fulfillment_result = blue_tshirt.fulfillment(
+        requires_shipping=True,
+        returnable=True,
+        weight_grams=180,
+    )
+    assert fulfillment_result.operation_result is None
 
     # Populate a variant independently, then append it to the product's typed
     # list. The same pattern naturally supports any number of variants.
@@ -142,4 +158,4 @@ if __name__ == "__main__":
         print(f"accepted_products={response.accepted_products}")
         print(f"rejected_products={response.rejected_products}")
         print(f"message={response.message}")
-        print(f"evaluation_result={response.evaluation_result}")
+        print(f"operation_result={response.operation_result}")
