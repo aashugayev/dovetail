@@ -6,14 +6,25 @@ import configparser
 
 logger = logging.getLogger(__name__)
 
+
 class Client:
     """
-    Generic Client class to manufacture api-specific client class based on config file api service default settings
+    Compose configured API and service implementations into one client.
+
+    The caller normally creates ``Client()`` without naming an implementation.
+    The factory locates ``config.cfg`` beside the caller, or uses the explicit
+    ``config_file`` keyword, then imports the module/class pair declared by the
+    selected API and service sections.
     """
     
     def __new__(self, **kwargs):
         """
-        api and service specific client object factory
+        Build a client whose method resolution combines both configured layers.
+
+        The API layer supplies the request/response-facing behavior and the
+        service layer supplies the transport behavior. Configuration values are
+        passed into the resulting instance so transport settings such as
+        ``service`` and ``version`` remain available as instance attributes.
         """
         
         logger.debug("Received configuration=%s", kwargs) 
@@ -37,6 +48,8 @@ class Client:
             logging.fatal(msg)
             raise RuntimeError(msg)
 
+        # Import implementations by configured module/class names so this
+        # factory does not need to know which API or transport is selected.
         api_module = importlib.import_module(config_conf['api_module'])
         api_client = getattr(api_module, config_conf['api_class'])
         service_module = importlib.import_module(config_conf['service_module'])
@@ -52,7 +65,12 @@ class Client:
     @staticmethod
     def get_config_conf(config_file: str) -> dict:
         """
-        collect default api interface configuration dictionary from config file
+        Read the selected API, service, and implementation settings.
+
+        The project accepts both a literal ``[default]`` section and
+        ConfigParser's special ``[DEFAULT]`` section. The ``[api]`` section
+        describes the API implementation; the section named by ``client``
+        describes the service implementation and its transport settings.
         """
         
         config_conf = dict()
