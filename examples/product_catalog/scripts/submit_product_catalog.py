@@ -1,10 +1,8 @@
 """Build and optionally submit a product catalog payload."""
 
 import argparse
-import enum
 import json
 import sys
-from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
 
@@ -13,89 +11,44 @@ PRODUCT_CATALOG_DIR = SCRIPTS_DIR.parent
 PROJECT_DIR = PRODUCT_CATALOG_DIR.parent.parent
 sys.path.extend([str(PROJECT_DIR), str(PRODUCT_CATALOG_DIR)])
 
-from product_catalog import (
-    Attribute,
-    Attributes,
-    Availability,
-    Catalog,
-    CatalogSubmissionRequest,
-    Categories,
-    Category,
-    Currency,
-    Fulfillment,
-    Identifier,
-    Inventory,
-    Locale,
-    Media,
-    MediaItems,
-    MediaKind,
-    Price,
-    Product,
-    ProductIdentity,
-    Products,
-    Sku,
-    SubmissionMode,
-    SubmissionOptions,
-    Variant,
-    Variants,
+from catalog_submission_request import (
+    catalog_submission_request,
+    category_component,
+    product_component,
+    variant_component,
 )
 from dovetail.pylib.client import Client
 
 
-def build_catalog_submission() -> CatalogSubmissionRequest:
-    """Create a representative catalog submission matching product_catalog.xsd."""
-    category = Category(id=Identifier("shirts"), name="Shirts")
-    variant = Variant(
-        sku=Sku("TSHIRT-BLUE-M"),
-        price=Price(amount=24.99, currency=Currency("USD")),
-        inventory=Inventory(quantity=25, availability=Availability.in_stock),
-    )
-    product = Product(
-        identity=ProductIdentity(
-            sku=Sku("TSHIRT-BLUE"),
-            name="Blue T-Shirt",
-            description="Classic cotton t-shirt.",
-            brand="Dovetail",
-        ),
-        variants=Variants(variant=[variant]),
-        media=MediaItems(
-            media=[
-                Media(
-                    url="https://example.com/products/tshirt-blue.jpg",
-                    kind=MediaKind.image,
-                    altText="Blue t-shirt",
-                )
-            ]
-        ),
-        attributes=Attributes(attribute=[Attribute(name="material", value="cotton")]),
-        fulfillment=Fulfillment(weightGrams=180, requiresShipping=True, returnable=True),
-    )
-    return CatalogSubmissionRequest(
-        catalog=Catalog(
-            name="Dovetail Store",
-            locale=Locale("en-US"),
-            currency=Currency("USD"),
-            categories=Categories(category=[category]),
-        ),
-        products=Products(product=[product]),
-        submissionOptions=SubmissionOptions(mode=SubmissionMode.upsert, dryRun=True),
-    )
+def build_catalog_submission():
+    """Build a catalog request through separately assembled components."""
+    request = catalog_submission_request()
 
+    request.catalog(
+        name="Dovetail Store",
+        locale="en-US",
+        currency="USD",
+    )
+    shirts = category_component(id="shirts", name="Shirts")
+    request.catalog.categories.category(shirts)
 
-def to_payload(submission: CatalogSubmissionRequest) -> dict:
-    """Convert generated dataclasses and enums to the catalog submission payload."""
-    def convert(value):
-        if isinstance(value, enum.Enum):
-            return value.value
-        if is_dataclass(value):
-            return convert(asdict(value))
-        if isinstance(value, dict):
-            return {key: convert(item) for key, item in value.items()}
-        if isinstance(value, list):
-            return [convert(item) for item in value]
-        return value
+    blue_tshirt = product_component()
+    blue_tshirt.identity(
+        sku="TSHIRT-BLUE",
+        name="Blue T-Shirt",
+        description="Classic cotton t-shirt.",
+        brand="Dovetail",
+    )
+    blue_tshirt.fulfillment(requires_shipping=True, returnable=True, weight_grams=180)
 
-    return {"catalogSubmissionRequest": convert(submission)}
+    medium_blue_tshirt = variant_component(sku="TSHIRT-BLUE-M")
+    medium_blue_tshirt.price(amount=24.99, currency="USD")
+    medium_blue_tshirt.inventory(quantity=25, availability="in_stock")
+    blue_tshirt.variants.variant(medium_blue_tshirt)
+
+    request.products.product(blue_tshirt)
+    request.submission_options(mode="upsert", dry_run=True)
+    return request
 
 
 def parse_args() -> argparse.Namespace:
@@ -107,7 +60,8 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-    payload = to_payload(build_catalog_submission())
+    request = build_catalog_submission()
+    payload = request.to_dict()
     print(json.dumps(payload, indent=2))
 
     if args.send:

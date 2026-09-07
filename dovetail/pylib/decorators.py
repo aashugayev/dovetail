@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import enum
 import os
 import sys
 from inspect import isfunction
@@ -104,7 +105,7 @@ class Component:
                 instance.__setattr__(field, value)
             else:
                 super().__setattr__(field, value)
-        instance.api_function(instance, **kwargs)
+        instance.evaluation_result = instance.api_function(instance, **kwargs)
         return instance
 
     def __getattribute__(self, name:str)->Any:
@@ -130,23 +131,54 @@ class Component:
 
     def to_dict(self):
         """Return this API component as a dictionary without None values."""
-        def remove_none_value(value):
+        def serialize(value):
+            if isinstance(value, enum.Enum):
+                return value.value
             if isinstance(value, list):
-                return [remove_none_value(x) for x in value if x is not None]
-            if isinstance(value, dict):
-                return {key: remove_none_value(val) for key, val in value.items() if val is not None}
+                return [serialize(item) for item in value if item is not None]
+            if hasattr(value, 'fields'):
+                assigned_fields = object.__getattribute__(value, '__dict__')
+                return {
+                    field_name: serialize(assigned_fields[field_name])
+                    for field_name in value.fields
+                    if field_name in assigned_fields and assigned_fields[field_name] is not None
+                }
             return value
         self_name = self.__class__.__name__[0].lower() + self.__class__.__name__[1:]
-        Component.is_to_dict = True
-        self_to_dict = asdict(self, dict_factory=dict)
-        Component.is_to_dict = False
-        return {self_name: remove_none_value(self_to_dict)}
+        return {self_name: serialize(self)}
 
 
 class component:
-    """Decorator factory that wraps generated dataclasses as API components."""
+    """Turn a generated dataclass into a callable component factory.
+
+    Applied as ``@component(Model)``, this class receives the generated
+    dataclass ``Model`` and then receives the decorated function as the second
+    argument to the resulting wrapper. The function is retained by
+    :class:`Component` as the component's behavior hook.
+
+    The wrapper first records the dataclass fields on ``base.fields`` so that
+    :class:`Component` can distinguish schema properties from ordinary Python
+    attributes. It also initializes ``base.counts``, used by ``Component`` to
+    distinguish the factory instance from instances it creates.
+
+    Finally, ``__new__`` dynamically creates and returns a class that inherits
+    from both ``Component`` and the original dataclass. The returned class has
+    the original dataclass fields and initialization behavior, plus callable
+    component behavior, deferred nested-component allocation, and ``to_dict``
+    serialization supplied by ``Component``. Python replaces the decorated
+    function name with an instance of this returned wrapper class.
+    """
     def __new__(cls, base):
-        """Create an API wrapper class for a dataclass."""
+        """Create the combined ``Component`` and generated-dataclass wrapper.
+
+        Args:
+            base: Generated dataclass supplied in ``@component(base)``.
+
+        Returns:
+            A dynamic class inheriting from ``Component`` and ``base``. When
+            Python applies the decorator to a function, that function becomes
+            the behavior hook used by instances of this class.
+        """
         base.fields = {f.name:f for f in fields(base)}
         base.counts = []
         return type(f'{base.__name__}', (Component, base,), {})
