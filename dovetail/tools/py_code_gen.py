@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
     """Parse component-generation command-line options."""
     this_dir = os.path.dirname(__file__)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--api_name", default="pepapi", help="generated dataclass module name")
+    parser.add_argument("--api_name", default="myapi", help="generated dataclass module name")
     parser.add_argument("--tmp_api_lib", default=os.path.join(this_dir, os.pardir, os.pardir, "_dovetail"), help="temporary component output directory")
     parser.add_argument("--api_lib", default=os.path.join(this_dir, os.pardir), help="directory containing the generated dataclass module")
     parser.add_argument("--request_class", default="Request", help="request root dataclass name")

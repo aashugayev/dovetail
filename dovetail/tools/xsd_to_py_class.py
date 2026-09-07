@@ -192,8 +192,8 @@ def parse_args() -> argparse.Namespace:
     apilib_dir = os.path.join(this_dir, os.path.pardir)
     
     parser = argparse.ArgumentParser(allow_abbrev=True)
-    parser.add_argument("--schema_file", type=str, default=f"{schema_dir}/pepapi.xml", help="schema file location")
-    parser.add_argument("--classes_file", type=str, default=f"{apilib_dir}/pepapi.py", help="dataclasses file location")
+    parser.add_argument("--schema_file", type=str, default=f"{schema_dir}/myapi.xml", help="schema file location")
+    parser.add_argument("--classes_file", type=str, default=f"{apilib_dir}/myapi.py", help="dataclasses file location")
     parser.add_argument("--logging_level", type=str, default="DEBUG", help="dataclasses file location")
     parser.add_argument("--write_to_file", action='store_true', help="write dataclasses to file")
     parser.add_argument("--config_file", type=str, default=CONFIG_FILE, help="type mapping and namespace config file")
@@ -335,7 +335,7 @@ def gen_classes(
     print('\n')
     print(check_enum)
     print('\n')
-    print("pepapi_import = [")
+    print("component_imports = [")
     for cls in list(class_set):
         print(f'    "{cls}",')
     print("]")
